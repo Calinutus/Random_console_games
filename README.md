@@ -13,6 +13,8 @@ pygame (if included)
 Other basic Python GUI libraries
 Each game focuses on improving problem-solving skills, logic implementation, and user interaction.
 
-❌⭕ Tic Tac Toe
+❌⭕ Tic Tac Toe 
+
 ⚓ Battleship
+
 ♟ Checkers
