@@ -1,7 +1,7 @@
 import random
 
 
-from Repository.Repo import CreateBoard
+from Battleship.Repo import CreateBoard
 
 
 class GameLogic:

@@ -1,4 +1,4 @@
-from Core.Core import GameLogic
+from Battleship.Core import GameLogic
 
 
 
