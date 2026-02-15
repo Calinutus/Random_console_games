@@ -1,7 +1,6 @@
 🎮Random Python Games Collection🎮
 
-A collection of small, fun console and GUI-based games built with Python.
-This repository is perfect for beginners learning Python, practicing logic building, or exploring GUI development.
+A collection of small, console and GUI-based games built with Python.
 
 This project contains multiple mini-games developed using:
 
@@ -11,11 +10,11 @@ Console (terminal-based) applications
 
 GUI applications using:
 
-pygame (if included)
+pygame 
 
 Other basic Python GUI libraries
 
-Each game focuses on improving problem-solving skills, logic implementation, and user interaction.
+Each game focuses on improving problem-solving skills, logic implementation, and user interaction
 
 ❌⭕ Tic Tac Toe 
 
