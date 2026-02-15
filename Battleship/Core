@@ -1,0 +1,176 @@
+import random
+
+
+from Repository.Repo import CreateBoard
+
+
+class GameLogic:
+    def __init__(self):
+        self.repo = CreateBoard()
+        self.ai_attacked_positions = set()
+        self.ai_boats = []
+        self.ai_targets = []
+        self.last_hit = False
+
+    def define_pos(self):
+        letters = {"A": 1 , "B" : 2 , "C" : 3 , "D" : 4 , "E" : 5 , "F" : 6}
+        return letters
+
+    def define_boat(self , ship_pos):
+        conversion_list = self.define_pos()
+        x1, y1 = conversion_list[ship_pos[0]], int(ship_pos[1])
+        x2, y2 = conversion_list[ship_pos[2]], int(ship_pos[3])
+        x3, y3 = conversion_list[ship_pos[4]], int(ship_pos[5])
+        return x1 , y1 , x2 , y2 , x3 , y3
+
+    def convert(self , ship_pos):
+        x1 ,y1 , x2 , y2 , x3 , y3 =self.define_boat(ship_pos)
+        if (x2 == x1 + 1) and (y1 == y2):
+            if(x3 == x2 + 1) and (y2 == y3):
+                return True
+
+        elif (y2 == y1 + 1) and (x1 == x2):
+            if(y3 == y2 + 1) and (x2 == x3):
+                return True
+
+        return False
+
+    def bool_boat_pos(self , boat1 , boat2):
+        x1 , y1 , x2, y2 , x3 , y3 = self.define_boat(boat1)
+        a1 , b1 , a2 , b2 , a3 , b3 = self.define_boat(boat2)
+        pos = {(x1, y1), (x2, y2), (x3, y3), (a1, b1), (a2, b2), (a3, b3)}
+        if len(pos) == 6:
+            return True
+        else:
+            return False
+
+    def set_boat_pos(self, boat1, boat2):
+        x1, y1, x2, y2, x3, y3 = self.define_boat(boat1)
+        a1, b1, a2, b2, a3, b3 = self.define_boat(boat2)
+
+        self.repo.place_simbol(y1, x1)
+        self.repo.place_simbol(y2, x2)
+        self.repo.place_simbol(y3, x3)
+
+        self.repo.place_simbol(b1, a1)
+        self.repo.place_simbol(b2, a2)
+        self.repo.place_simbol(b3, a3)
+
+
+    def place_ai_boats(self):
+        while True:
+            b1 = self.random_pos()
+            b2 = self.random_pos()
+            if self.bool_boat_pos(b1 , b2):
+                self.ai_boats = [b1 , b2]
+                return
+
+
+    def __str__(self):
+        return self.repo.__str__()
+
+    def valid_attack(self , pos):
+        if len(pos) != 2:
+            return False
+        letters = self.define_pos()
+        if pos[0] not in letters:
+            return False
+        if pos[1] not in "123456":
+            return False
+        return True
+
+    def all_attack_positions(self):
+        letters = ["A" , "B" , "C" , "D" , "E" , "F"]
+        numbers = ["1" , "2" , "3" , "4" , "5" ,"6"]
+        return [l + n for l in letters for n in numbers]
+
+    def ai_attacks(self):
+        if self.ai_targets:
+            pos = self.ai_targets.pop(0)
+            self.ai_attacked_positions.add(pos)
+            return pos
+
+        all_pos = self.all_attack_positions()
+        while True:
+            pos = random.choice(all_pos)
+            if pos not in self.ai_attacked_positions:
+                self.ai_attacked_positions.add(pos)
+                return pos
+
+
+    def convert_attack(self , pos):
+        letters = self.define_pos()
+        x = letters[pos[0]]
+        y = int(pos[1])
+        return x , y
+
+    def reverse_convert(self, x, y):
+        letters = {1: "A", 2: "B", 3: "C", 4: "D", 5: "E", 6: "F"}
+        return letters[x] + str(y)
+
+    def apply_ai_attack(self , pos):
+        x , y = self.convert_attack(pos)
+        if self.repo.player_table[y][x] == "+":
+            self.repo.player_table[y][x]= "X"
+            self.last_hit =(x , y)
+
+            neighbors = [
+                (x , y - 1),
+                (x, y + 1),
+                (x - 1 , y),
+                (x + 1 , y)
+            ]
+            for nx , ny in neighbors:
+                if 1 <= nx <= 6 and 1 <= ny <= 6:
+                    pos_str = self.reverse_convert(nx , ny)
+                    if pos_str not in self.ai_attacked_positions:
+                        self.ai_targets.append(pos_str)
+        else:
+            self.repo.player_table[y][x] = "O"
+
+    def apply_player_attack(self, pos):
+        x, y = self.convert_attack(pos)
+
+        for boat in self.ai_boats:
+            bx1, by1, bx2, by2, bx3, by3 = self.define_boat(boat)
+            if (x, y) in [(bx1, by1), (bx2, by2), (bx3, by3)]:
+                self.repo.targeting_table[y][x] = "X"  # HIT
+                return
+
+        self.repo.targeting_table[y][x] = "O"  # MISS
+
+    def list_of_pos(self):
+        list_pos = ["A1A2A3" , "A2A3A4" , "A3A4A5" , "A4A5A6" , "B1B2B3","B2B3B4","B3B4B5","B4B5B6" , "C1C2C3" , "C2C3C4" , "C3C4C5" , "C4C5C6" , "D1D2D3" , "D2D3D4" , "D3D4D5" , "D4D5D6", "E1E2E3" , "E2E3E4" , "E3E4E5" , "E4E5E6" , "F1F2F3" , "F2F3F4" , "F3F4F5" , "F4F5F6" , "A1B1C1" , "B1C1D1" , "C1D1E1" , "D1E1F1" , "A2B2C2" , "B2C2D2" , "C2D2E2" , "D2E2F2" , "A3B3C3", "B3C3D3", "C3D3E3", "D3E3F3", "A4B4C4", "B4C4D4", "C4D4E4", "D4E4F4", "A5B5C5", "B5C5D5", "C5D5E5", "D5E5F5", "A6B6C6", "B6C6D6", "C6D6E6", "D6E6F6"]
+        return list_pos
+
+    def random_pos(self):
+        list_of_pos = self.list_of_pos()
+        list_pos_random = random.randint(0,len(list_of_pos) - 1)
+        return list_of_pos[list_pos_random]
+
+    def get_ai_cells(self):
+        cells = []
+        for boat in self.ai_boats:
+            x1 , y1 , x2 , y2 , x3 , y3 = self.define_boat(boat)
+            cells.extend([(x1 , y1) , (x2 , y2) , (x3 , y3)])
+        return cells
+
+    def player_win(self):
+        for (x , y) in self.get_ai_cells():
+            if self.repo.targeting_table[y][x] != "X":
+                return False
+        return True
+
+    def ai_win(self):
+        for row in range(1 , 7):
+            for col in range(1 , 7):
+                if self.repo.player_table[row][col] == "+":
+                    return False
+        return True
+
+    def check_win(self):
+        if self.player_win():
+            return "PLAYER"
+        if self.ai_win():
+            return "AI"
+        return None
